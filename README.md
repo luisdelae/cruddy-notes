@@ -28,7 +28,7 @@ This project serves as a practical implementation of Clean Architecture on Andro
 ### Core Technologies
 - **Language**: Kotlin
 - **Minimum SDK**: 26 (Android 8.0)
-- **Target SDK**: 34 (Android 14)
+- **Target SDK**: 36 (Android 16)
 
 ### Architecture & Patterns
 - **Architecture**: Clean Architecture (Domain/Data/Presentation layers)
