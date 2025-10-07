@@ -1,5 +1,6 @@
 package com.luisd.cruddynotes.ui.notes
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -42,12 +44,16 @@ fun AddEditNoteScreen(
         }
     }
 
+    val context = LocalContext.current
+
     val title = rememberTextFieldState(initialText = noteToEdit?.title ?: "")
     val content = rememberTextFieldState(initialText = noteToEdit?.content ?: "")
     val category = rememberTextFieldState(initialText = noteToEdit?.category ?: "")
 
+    val isNewNote = noteId == null
+
     AddEditNoteScreenContent(
-        isNewNote = noteId == null,
+        isNewNote = isNewNote,
         title = title,
         content = content,
         category = category,
@@ -58,6 +64,12 @@ fun AddEditNoteScreen(
                 content = content.text.toString(),
                 category = category.text.toString()
             )
+
+            val toastText = if (isNewNote) "Note added" else "Note updated"
+
+            Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show()
+
+            onNavigateBack()
         },
         onNavigateBack = onNavigateBack
     )
