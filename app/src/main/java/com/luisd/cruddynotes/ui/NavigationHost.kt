@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.luisd.cruddynotes.ui.notes.AddEditNoteScreen
 import com.luisd.cruddynotes.ui.notes.NoteViewModel
+import com.luisd.cruddynotes.ui.notes.NoteViewModelFactory
 import com.luisd.cruddynotes.ui.notes.NotesScreen
 
 @Composable
@@ -22,11 +23,7 @@ fun NavigationHost(modifier: Modifier) {
     val context = LocalContext.current
 
     val notesViewModel: NoteViewModel = viewModel(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(model: Class<T>): T {
-                return NoteViewModel(context.applicationContext as Application) as T
-            }
-        }
+        factory = NoteViewModelFactory(context.applicationContext as Application)
     )
 
     NavHost(

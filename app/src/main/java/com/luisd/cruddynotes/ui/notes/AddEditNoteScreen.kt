@@ -147,8 +147,8 @@ fun NoteFields(
         TextField(
             modifier = Modifier.fillMaxWidth(),
             state = title,
-            label = { "Note title" },
-            placeholder = { "Note title" }
+            label = { Text("Title") },
+            placeholder = { Text("Note title") }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -156,8 +156,8 @@ fun NoteFields(
         TextField(
             modifier = Modifier.fillMaxWidth(),
             state = content,
-            label = { "Note content" },
-            placeholder = { "Note content" }
+            label = { Text("Content") },
+            placeholder = { Text("Note content") }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -165,8 +165,8 @@ fun NoteFields(
         TextField(
             modifier = Modifier.fillMaxWidth(),
             state = category,
-            label = { "Note category" },
-            placeholder = { "Note category" }
+            label = { Text("Category") },
+            placeholder = { Text("Note category") }
         )
     }
 }

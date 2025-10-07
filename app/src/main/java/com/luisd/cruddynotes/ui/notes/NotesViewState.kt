@@ -6,9 +6,10 @@ sealed class NotesViewState
 
 object Loading: NotesViewState()
 
-object Error: NotesViewState()
+data class Error(
+    val error: String
+): NotesViewState()
 
 data class Content(
-    val loading: Boolean = false,
     val notes: List<Note> = emptyList()
 ) : NotesViewState()

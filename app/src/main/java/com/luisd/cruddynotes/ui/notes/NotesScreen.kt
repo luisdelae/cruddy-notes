@@ -43,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -60,6 +61,7 @@ fun NotesScreen(
     onNavigateToEditNote: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -92,14 +94,14 @@ fun NotesScreen(
                 }
             }
 
-            Error -> {
+            is Error -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "Error loading notes")
+                    Text(text = "Error loading notes: \n${(uiState as Error).error}")
                 }
             }
 
@@ -122,7 +124,6 @@ fun NoteCardList(
     onSwipe: (String) -> Unit,
     onNavigateToEditNote: (String) -> Unit
 ) {
-    Log.d("LUIS:::::", "Notes: $notes")
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -225,14 +226,18 @@ fun NoteItemSwipeable(
     val dismissState =
         rememberSwipeToDismissBoxState(
             initialValue = SwipeToDismissBoxValue.Settled,
-            positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold
+            positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold,
         )
 
     SwipeToDismissBox(
         state = dismissState,
         backgroundContent = {
             val color by animateColorAsState(
-                targetValue = if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) Color.Red else Color.Transparent,
+                targetValue =
+                    if (dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd)
+                        Color.Red
+                    else Color.
+                        Transparent,
                 animationSpec = tween(durationMillis = 200)
             )
             Box(
