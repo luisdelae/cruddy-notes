@@ -47,6 +47,7 @@ fun AddEditNoteScreen(
     val category = rememberTextFieldState(initialText = noteToEdit?.category ?: "")
 
     AddEditNoteScreenContent(
+        isNewNote = noteId == null,
         title = title,
         content = content,
         category = category,
@@ -65,6 +66,7 @@ fun AddEditNoteScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditNoteScreenContent(
+    isNewNote: Boolean,
     title: TextFieldState,
     content: TextFieldState,
     category: TextFieldState,
@@ -74,7 +76,7 @@ fun AddEditNoteScreenContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (title.text.isEmpty()) "Add Note" else "Edit Note") },
+                title = { Text(if (isNewNote) "Add Note" else "Edit Note") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
@@ -109,6 +111,7 @@ fun AddEditNoteScreenContent(
 @Preview
 fun AddEditNoteScreenContentPreview() {
     AddEditNoteScreenContent(
+        isNewNote = false,
         title = TextFieldState("Get it done"),
         content = TextFieldState("This is the content of an existing note."),
         category = TextFieldState("Important"),
