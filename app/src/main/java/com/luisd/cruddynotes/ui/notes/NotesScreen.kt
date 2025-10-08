@@ -69,13 +69,19 @@ fun NotesScreen(
             TopAppBar(
                 title = { Text("Notes") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onNavigateToAddNote() }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Note")
+            FloatingActionButton(
+                onClick = { onNavigateToAddNote() },
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Note",
+                )
             }
         }
     ) { paddingValues ->

@@ -90,7 +90,7 @@ fun AddEditNoteScreenContent(
             TopAppBar(
                 title = { Text(if (isNewNote) "Add Note" else "Edit Note") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary
                 ),
                 navigationIcon = {
                     IconButton(onClick = { onNavigateBack() }) {
