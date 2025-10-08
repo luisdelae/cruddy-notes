@@ -3,13 +3,10 @@ package com.luisd.cruddynotes.ui.notes
 import com.luisd.cruddynotes.domain.model.Note
 
 sealed class NotesViewState
-
 object Loading: NotesViewState()
-
-data class Error(
-    val error: String
-): NotesViewState()
-
+object Empty: NotesViewState() // No notes in DB
+data class Error(val error: String): NotesViewState()
 data class Content(
-    val notes: List<Note> = emptyList()
+    val notes: List<Note> = emptyList(),
+    val isSearchActive: Boolean = false
 ) : NotesViewState()

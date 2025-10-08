@@ -1,5 +1,6 @@
 package com.luisd.cruddynotes.ui.notes
 
+import android.text.Layout
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -24,12 +25,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.NoteAlt
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxDefaults
@@ -40,11 +44,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -61,11 +67,11 @@ fun NotesScreen(
     onNavigateToEditNote: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
+
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
-            // Extract this into its own composable file to reuse
             TopAppBar(
                 title = { Text("Notes") },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -87,16 +93,26 @@ fun NotesScreen(
     ) { paddingValues ->
         when (uiState) {
             is Content -> {
-                val content = uiState as Content
-                if (content.notes.isEmpty()) {
-                    NotesEmpty(paddingValues)
-                } else {
-                    NoteCardList(
-                        paddingValues = paddingValues,
-                        notes = (uiState as Content).notes,
-                        onSwipe = { noteId -> viewModel.deleteNote(noteId) },
-                        onNavigateToEditNote = onNavigateToEditNote
-                    )
+                val state = (uiState as Content)
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                ) {
+                    SearchBar(searchQuery) { query -> viewModel.updateSearchQuery(query) }
+
+                    if (state.notes.isEmpty() && state.isSearchActive) {
+                        EmptySearchResults()
+                    } else if (state.notes.isEmpty()) {
+                        // Should not be here
+                    } else {
+                        NoteCardList(
+                            notes = state.notes,
+                            onSwipe = { noteId -> viewModel.deleteNote(noteId) },
+                            onNavigateToEditNote = onNavigateToEditNote
+                        )
+                    }
                 }
             }
 
@@ -119,21 +135,23 @@ fun NotesScreen(
                     CircularProgressIndicator()
                 }
             }
+
+            Empty -> {
+                NotesEmpty(paddingValues)
+            }
         }
     }
 }
 
 @Composable
 fun NoteCardList(
-    paddingValues: PaddingValues,
     notes: List<Note>,
     onSwipe: (String) -> Unit,
     onNavigateToEditNote: (String) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues),
+            .fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         items(
@@ -157,8 +175,7 @@ fun NoteCardListPreview() {
             id = "123",
             title = "Test title One",
             content = "This is a test note with a couple of lines to text to " +
-                    "ensure that it works correctly.\n\nLet's make sure forced multi line" +
-                    "works as well as it should.\n\n\nIt do!",
+                    "ensure that it works correctly.",
             category = "Testing",
             timeStamp = 1759766563000
         )
@@ -186,7 +203,6 @@ fun NoteCardListPreview() {
         textNote1, textNote2, textNote3
     )
     NoteCardList(
-        paddingValues = PaddingValues(),
         notes = notes,
         onSwipe = { },
         onNavigateToEditNote = { }
@@ -212,7 +228,8 @@ fun NotesEmpty(paddingValues: PaddingValues) {
             text = "No notes yet. Press the + to add a note!",
             color = Color.Black,
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            fontSize = 20.sp
+            fontSize = 20.sp,
+            textAlign = TextAlign.Center
         )
     }
 }
@@ -242,8 +259,7 @@ fun NoteItemSwipeable(
                 targetValue =
                     if (dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd)
                         Color.Red
-                    else Color.
-                        Transparent,
+                    else Color.Transparent,
                 animationSpec = tween(durationMillis = 200)
             )
             Box(
@@ -330,4 +346,56 @@ fun NoteItemSwipeablePreview() {
         )
 
     NoteItemSwipeable(testNote, { }, onClick = { })
+}
+
+@Composable
+fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        placeholder = { Text("Search notes...") },
+        leadingIcon = { Icon(Icons.Default.Search, "search") }
+    )
+}
+
+@Composable
+@Preview
+fun SearchBarPreview() {
+    SearchBar("") { }
+}
+
+@Composable
+fun EmptySearchResults() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.SearchOff,
+            contentDescription = "No results icon",
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .size(48.dp)
+        )
+        Text(
+            text = "No notes found.\nTry searching for something else!",
+            color = Color.Black,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            fontSize = 20.sp,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+@Preview
+fun EmptySearchResultsPreview() {
+    EmptySearchResults()
 }

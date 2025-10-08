@@ -6,32 +6,53 @@ import androidx.lifecycle.viewModelScope
 import com.luisd.cruddynotes.core.NotesApplication
 import com.luisd.cruddynotes.domain.model.Note
 import com.luisd.cruddynotes.domain.repository.NoteRepository
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 // Utilizing AndroidViewModel and passing the Application into it as this is a
 // quick project that doesn't yet need DI. Would use in a larger project.
-// Mid point to this would be to use a ViewModel factory, but not needed at the moment.
+@OptIn(FlowPreview::class)
 class NoteViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: NoteRepository =
         (application as NotesApplication).repository
 
-    private val _uiSTate = MutableStateFlow<NotesViewState>(Loading)
+    private val _uiState = MutableStateFlow<NotesViewState>(Loading)
 
-    val uiState: StateFlow<NotesViewState> = _uiSTate
+    val uiState: StateFlow<NotesViewState> = _uiState
+
+    private val _searchQuery = MutableStateFlow("")
+
+    val searchQuery: StateFlow<String> = _searchQuery
 
     init {
         viewModelScope.launch {
             try {
-                repository.getAllNotes().collect { notes ->
-                    _uiSTate.update {
-                        Content(notes = notes)
+                combine(
+                    repository.getAllNotes(),
+                    _searchQuery.debounce(300)
+                ) { notes, query ->
+                    if (notes.isEmpty() && query.isBlank()) {
+                        Empty
+                    } else {
+                        val displayNotes = if (query.isBlank()) {
+                            notes
+                        } else {
+                            notes.filter { note ->
+                                note.title.contains(query, ignoreCase = true) ||
+                                        note.content.contains(query, ignoreCase = true)
+                            }
+                        }
+
+                        Content(notes = displayNotes, isSearchActive = query.isNotBlank())
                     }
-                }
+                }.collect { newState -> _uiState.update { newState } }
             } catch (e: Exception) {
-                _uiSTate.update { Error(e.toString()) }
+                _uiState.update { Error(e.toString()) }
             }
         }
     }
@@ -64,5 +85,9 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             repository.deleteNote(noteId = noteId)
         }
+    }
+
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
     }
 }
