@@ -1,9 +1,7 @@
 package com.luisd.cruddynotes.ui.notes
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.luisd.cruddynotes.core.NotesApplication
 import com.luisd.cruddynotes.domain.model.Note
 import com.luisd.cruddynotes.domain.model.SortOption
 import com.luisd.cruddynotes.domain.model.SortOption.DATE_DESC
@@ -17,13 +15,10 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-// Utilizing AndroidViewModel and passing the Application into it as this is a
-// quick project that doesn't yet need DI. Would use in a larger project.
 @OptIn(FlowPreview::class)
-class NoteViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: NoteRepository =
-        (application as NotesApplication).repository
-
+class NoteViewModel(
+    private val repository: NoteRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow<NotesViewState>(Loading)
     val uiState: StateFlow<NotesViewState> = _uiState
 
@@ -33,8 +28,8 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
     private val _selectedCategory = MutableStateFlow<String?>(null)
     val selectedCategory: StateFlow<String?> = _selectedCategory
 
-    private val _selectedSortOrder = MutableStateFlow<SortOption>(DATE_DESC)
-    val selectedSortOrder = _selectedSortOrder
+    private val _selectedSortOrder = MutableStateFlow(DATE_DESC)
+    val selectedSortOrder: StateFlow<SortOption> = _selectedSortOrder
 
     init {
         viewModelScope.launch {

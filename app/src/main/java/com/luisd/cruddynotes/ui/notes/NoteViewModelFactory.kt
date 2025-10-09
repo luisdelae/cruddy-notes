@@ -3,14 +3,16 @@ package com.luisd.cruddynotes.ui.notes
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.luisd.cruddynotes.core.NotesApplication
 
 class NoteViewModelFactory(
     private val application: Application
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(NoteViewModel::class.java)) {
+            val repository = (application as NotesApplication).repository
             @Suppress("UNCHECKED_CAST")
-            return NoteViewModel(application) as T
+            return NoteViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
