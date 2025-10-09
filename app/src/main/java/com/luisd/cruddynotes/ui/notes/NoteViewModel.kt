@@ -22,33 +22,40 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
         (application as NotesApplication).repository
 
     private val _uiState = MutableStateFlow<NotesViewState>(Loading)
-
     val uiState: StateFlow<NotesViewState> = _uiState
 
     private val _searchQuery = MutableStateFlow("")
-
     val searchQuery: StateFlow<String> = _searchQuery
+
+    private val _selectedCategory = MutableStateFlow<String?>(null)
+    val selectedCategory: StateFlow<String?> = _selectedCategory
 
     init {
         viewModelScope.launch {
             try {
                 combine(
                     repository.getAllNotes(),
-                    _searchQuery.debounce(300)
-                ) { notes, query ->
+                    _searchQuery.debounce(300),
+                    _selectedCategory
+                ) { notes, query, category ->
                     if (notes.isEmpty() && query.isBlank()) {
                         Empty
                     } else {
-                        val displayNotes = if (query.isBlank()) {
-                            notes
-                        } else {
-                            notes.filter { note ->
-                                note.title.contains(query, ignoreCase = true) ||
+                        val displayNotes = notes
+                            .filter { note -> category == null || note.category == category }
+                            .filter { note ->
+                                query.isBlank() ||
+                                        note.title.contains(query, ignoreCase = true) ||
                                         note.content.contains(query, ignoreCase = true)
                             }
-                        }
 
-                        Content(notes = displayNotes, isSearchActive = query.isNotBlank())
+                        val categories = notes.map { it.category }.distinct().sorted()
+
+                        Content(
+                            notes = displayNotes,
+                            categories = categories,
+                            isSearchActive = query.isNotBlank()
+                        )
                     }
                 }.collect { newState -> _uiState.update { newState } }
             } catch (e: Exception) {
@@ -89,5 +96,9 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
+    }
+
+    fun updateSelectedCategory(category: String?) {
+        _selectedCategory.value = category
     }
 }

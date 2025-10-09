@@ -8,5 +8,6 @@ object Empty: NotesViewState() // No notes in DB
 data class Error(val error: String): NotesViewState()
 data class Content(
     val notes: List<Note> = emptyList(),
+    val categories: List<String> = emptyList(),
     val isSearchActive: Boolean = false
 ) : NotesViewState()

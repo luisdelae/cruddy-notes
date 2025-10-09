@@ -17,8 +17,8 @@ This project serves as a practical implementation of Clean Architecture on Andro
 - ✅ Create, read, update, and delete notes
 - ✅ Categorize notes with custom categories
 - ✅ Swipe-to-delete functionality
-- 🔳 Search notes by title and content (debounced)
-- 🔳 Filter notes by category
+- ✅ Search notes by title and content (debounced)
+- ✅ Filter notes by category
 - 🔳 Sort notes by date, title, or category
 - ✅ Offline-first architecture with Room database
 - ✅ Material Design 3 UI with Jetpack Compose
