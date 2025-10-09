@@ -22,7 +22,7 @@ This project serves as a practical implementation of Clean Architecture on Andro
 - ✅ Sort notes by date, title, or category
 - ✅ Offline-first architecture with Room database
 - ✅ Material Design 3 UI with Jetpack Compose
-- 🔳 Unit tests for ViewModel and Repository layers
+- ✅ Unit tests for ViewModel and Repository layers
 
 ## Tech Stack
 
@@ -48,6 +48,15 @@ This project serves as a practical implementation of Clean Architecture on Andro
 - **Reactive Programming**: Kotlin Flow with operators (`combine`, `map`, `filter`, `debounce`)
 - **Concurrency**: Coroutines with proper dispatcher usage
 - **Type Safety**: Kotlinx Serialization for navigation arguments
+- 
+## Testing
+
+Comprehensive unit test coverage using JUnit 4, MockK, and Coroutines Test library.
+
+**Test Coverage:**
+- ViewModel: Search, filter, sort, and CRUD operations
+- Repository: Data mapping and DAO interactions
+- Flow operators and state management
 
 ## Development Timeline
 
