@@ -198,7 +198,7 @@ class NoteViewModelTest {
     }
 
     @Test
-    fun `sort by title descending orders correctly`() = runTest {
+    fun `sort by title ascending orders correctly`() = runTest {
         coEvery { repository.getAllNotes() } returns flowOf(notes)
 
         val viewModel = NoteViewModel(repository)
