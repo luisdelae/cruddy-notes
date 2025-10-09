@@ -20,18 +20,24 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.NoteAlt
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -44,7 +50,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -54,8 +64,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.luisd.cruddynotes.domain.model.Note
+import com.luisd.cruddynotes.domain.model.SortOption
 import com.luisd.cruddynotes.domain.toFormattedString
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,6 +82,8 @@ fun NotesScreen(
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
 
     val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
+
+    val selectedSortOption by viewModel.selectedSortOrder.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -108,7 +122,19 @@ fun NotesScreen(
                         viewModel.updateSelectedCategory(newCategorySelection)
                     }
 
-                    SearchBar(searchQuery) { query -> viewModel.updateSearchQuery(query) }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        SearchBar(
+                            Modifier.weight(1f),
+                            searchQuery
+                        ) { query -> viewModel.updateSearchQuery(query) }
+                        Spacer(Modifier.width(8.dp))
+                        SortMenu(selectedSortOption) { option -> viewModel.updateSortOrder(option) }
+                    }
 
                     if (state.notes.isEmpty() && state.isSearchActive) {
                         EmptySearchResults()
@@ -117,6 +143,7 @@ fun NotesScreen(
                     } else {
                         NoteCardList(
                             notes = state.notes,
+                            sortOption = selectedSortOption,
                             onSwipe = { noteId -> viewModel.deleteNote(noteId) },
                             onNavigateToEditNote = onNavigateToEditNote
                         )
@@ -154,10 +181,18 @@ fun NotesScreen(
 @Composable
 fun NoteCardList(
     notes: List<Note>,
+    sortOption: SortOption,
     onSwipe: (String) -> Unit,
     onNavigateToEditNote: (String) -> Unit
 ) {
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(sortOption) {
+        listState.scrollToItem(0)
+    }
+
     LazyColumn(
+        state = listState,
         modifier = Modifier
             .fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -212,6 +247,7 @@ fun NoteCardListPreview() {
     )
     NoteCardList(
         notes = notes,
+        sortOption = SortOption.DATE_DESC,
         onSwipe = { },
         onNavigateToEditNote = { }
     )
@@ -358,24 +394,53 @@ fun NoteItemSwipeablePreview() {
 
 @Composable
 fun SearchBar(
+    modifier: Modifier,
     query: String,
     onQueryChange: (String) -> Unit
 ) {
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+        modifier = modifier,
         placeholder = { Text("Search notes...") },
         leadingIcon = { Icon(Icons.Default.Search, "search") }
     )
 }
 
 @Composable
-@Preview
-fun SearchBarPreview() {
-    SearchBar("") { }
+fun SortMenu(
+    selectedSortOption: SortOption,
+    onSortChange: (SortOption) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        IconButton(
+            onClick = { expanded = true }
+        ) {
+            Icon(Icons.AutoMirrored.Default.Sort, contentDescription = "Sort options")
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            properties = PopupProperties(focusable = true)
+        ) {
+            SortOption.entries.forEach { sortOption ->
+                DropdownMenuItem(
+                    text = { Text(sortOption.displayValue) },
+                    onClick = {
+                        onSortChange(sortOption)
+                        expanded = false
+                    },
+                    trailingIcon = {
+                        if (sortOption == selectedSortOption) {
+                            Icon(Icons.Default.Check, contentDescription = null)
+                        }
+                    }
+                )
+            }
+        }
+    }
 }
 
 @Composable

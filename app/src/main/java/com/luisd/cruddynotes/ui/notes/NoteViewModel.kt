@@ -5,6 +5,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.luisd.cruddynotes.core.NotesApplication
 import com.luisd.cruddynotes.domain.model.Note
+import com.luisd.cruddynotes.domain.model.SortOption
+import com.luisd.cruddynotes.domain.model.SortOption.DATE_DESC
+import com.luisd.cruddynotes.domain.model.comparator
 import com.luisd.cruddynotes.domain.repository.NoteRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,14 +33,18 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
     private val _selectedCategory = MutableStateFlow<String?>(null)
     val selectedCategory: StateFlow<String?> = _selectedCategory
 
+    private val _selectedSortOrder = MutableStateFlow<SortOption>(DATE_DESC)
+    val selectedSortOrder = _selectedSortOrder
+
     init {
         viewModelScope.launch {
             try {
                 combine(
                     repository.getAllNotes(),
                     _searchQuery.debounce(300),
-                    _selectedCategory
-                ) { notes, query, category ->
+                    _selectedCategory,
+                    _selectedSortOrder
+                ) { notes, query, category, sortOrder ->
                     if (notes.isEmpty() && query.isBlank()) {
                         Empty
                     } else {
@@ -47,7 +54,7 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
                                 query.isBlank() ||
                                         note.title.contains(query, ignoreCase = true) ||
                                         note.content.contains(query, ignoreCase = true)
-                            }
+                            }.sortedWith(sortOrder.comparator())
 
                         val categories = notes.map { it.category }.distinct().sorted()
 
@@ -100,5 +107,9 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateSelectedCategory(category: String?) {
         _selectedCategory.value = category
+    }
+
+    fun updateSortOrder(sortEnum: SortOption) {
+        _selectedSortOrder.value = sortEnum
     }
 }
